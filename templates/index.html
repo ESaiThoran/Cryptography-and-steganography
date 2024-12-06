@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEGANOGRAPHY TOOL</title>
+    <style>
+        /* Previous styles remain the same until form-container */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .media-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .media-button, .tab-button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: 2px solid #2980b9;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .media-button:hover, .tab-button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        .media-button.active, .tab-button.active {
+            background-color: #e31f1f;
+            border-color: #121212;
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .tab {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .form-container {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            position: absolute;
+            width: 100%;
+            max-width: 740px;
+        }
+        .form-container.visible {
+            opacity: 1;
+            visibility: visible;
+            position: relative;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+        textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        button[onclick^="handle"] {
+            background-color: #2ecc71;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        button[onclick^="handle"]:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+        #status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        .forms-wrapper {
+            position: relative;
+            min-height: 400px; /* Adjust based on your largest form */
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>STEGANOGRAPHY TOOL</h1>
+        
+        <div class="media-selector">
+            <button class="media-button active" data-media="image">Image</button>
+            <button class="media-button" data-media="video">Video</button>
+            <button class="media-button" data-media="audio">Audio</button>
+            <button class="media-button" data-media="text">Text File</button>
+        </div>
+
+        <div class="tab">
+            <button class="tab-button active" data-mode="hide">Hide</button>
+            <button class="tab-button" data-mode="reveal">Reveal</button>
+        </div>
+
+        <div class="forms-wrapper">
+            <!-- Image Hide Form -->
+            <div id="imageHideForm" class="form-container visible">
+                <div class="form-group">
+                    <label for="coverImage">Cover Image :</label>
+                    <input type="file" id="coverImage" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="imageTextData">Text to Hide :</label>
+                    <textarea id="imageTextData" placeholder="Enter the text you want to hide..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="imageSeed">Seed :</label>
+                    <input type="text" id="imageSeed" required>
+                </div>
+                <button onclick="handleImageHide()">Hide Data</button>
+            </div>
+
+            <!-- Image Reveal Form -->
+            <div id="imageRevealForm" class="form-container">
+                <div class="form-group">
+                    <label for="encodedImage">Encoded Image :</label>
+                    <input type="file" id="encodedImage" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="imageKey">Encryption Key :</label>
+                    <input type="text" id="imageKey" required>
+                </div>
+                <div class="form-group">
+                    <label for="imageRevealSeed">Seed :</label>
+                    <input type="text" id="imageRevealSeed" required>
+                </div>
+                <div class="form-group">
+                    <label for="imageTnp">TNP Value :</label>
+                    <input type="number" id="imageTnp" required>
+                </div>
+                <button onclick="handleImageReveal()">Reveal Data</button>
+            </div>
+
+            <!-- Video Hide Form -->
+            <div id="videoHideForm" class="form-container">
+                <div class="form-group">
+                    <label for="coverVideo">Cover Video :</label>
+                    <input type="file" id="coverVideo" accept="video/*">
+                </div>
+                <div class="form-group">
+                    <label for="videoTextData">Text to Hide :</label>
+                    <textarea id="videoTextData" placeholder="Enter the text you want to hide..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="videoSeed">Seed :</label>
+                    <input type="text" id="videoSeed" required>
+                </div>
+                <button onclick="handleVideoHide()">Hide Data</button>
+            </div>
+
+            <!-- Video Reveal Form -->
+            <div id="videoRevealForm" class="form-container">
+                <!-- Add video reveal form content -->
+                <div class="form-group">
+                    <label for="encodedVideo">Encoded Video :</label>
+                    <input type="file" id="encodedVideo" accept="video/*">
+                </div>
+                <div class="form-group">
+                    <label for="videoKey">Encryption Key :</label>
+                    <input type="text" id="videoKey" required>
+                </div>
+                <div class="form-group">
+                    <label for="videoRevealSeed">Seed :</label>
+                    <input type="text" id="videoRevealSeed" required>
+                </div>
+                <div class="form-group">
+                    <label for="videoTnp">TNP Value :</label>
+                    <input type="number" id="videoTnp" required>
+                </div>
+                <button onclick="handleVideoReveal()">Reveal Data</button>
+            </div>
+
+            <!-- Audio Hide Form -->
+            <div id="audioHideForm" class="form-container">
+                <div class="form-group">
+                    <label for="coverAudio">Cover Audio :</label>
+                    <input type="file" id="coverAudio" accept="audio/*">
+                </div>
+                <div class="form-group">
+                    <label for="audioTextData">Text to Hide :</label>
+                    <textarea id="audioTextData" placeholder="Enter the text you want to hide..."></textarea>
+                </div>
+                <button onclick="handleAudioHide()">Hide Data</button>
+            </div>
+
+            <!-- Audio Reveal Form -->
+            <div id="audioRevealForm" class="form-container">
+                <div class="form-group">
+                    <label for="encodedAudio">Encoded Audio :</label>
+                    <input type="file" id="encodedAudio" accept="audio/*">
+                </div>
+                <div class="form-group">
+                    <label for="audioKey">Encryption Key :</label>
+                    <input type="text" id="audioKey" required>
+                </div>
+                <button onclick="handleAudioReveal()">Reveal Data</button>
+            </div>
+
+            <!-- Text Hide Form -->
+            <div id="textHideForm" class="form-container">
+                <div class="form-group">
+                    <label for="coverText">Cover Text File :</label>
+                    <input type="file" id="coverText" accept=".txt,.doc,.docx">
+                </div>
+                <div class="form-group">
+                    <label for="textFileData">Text to Hide :</label>
+                    <textarea id="textFileData" placeholder="Enter the text you want to hide..."></textarea>
+                </div>
+                <button onclick="handleTextHide()">Hide Data</button>
+            </div>
+
+            <!-- Text Reveal Form -->
+            <div id="textRevealForm" class="form-container">
+                <div class="form-group">
+                    <label for="encodedText">Encoded Text File :</label>
+                    <input type="file" id="encodedText" accept=".txt,.doc,.docx">
+                </div>
+                <div class="form-group">
+                    <label for="textKey">Encryption Key :</label>
+                    <input type="text" id="textKey" required>
+                </div>
+                <button onclick="handleTextReveal()">Reveal Data</button>
+            </div>
+        </div>
+
+        <div id="status" class="hidden"></div>
+        <div id="result" class="hidden"></div>
+    </div>
+
+    <script>
+        // Enhanced form visibility handling with transitions
+        function updateFormVisibility(mediaType, mode) {
+            const allForms = document.querySelectorAll('.form-container');
+            allForms.forEach(form => {
+                form.classList.remove('visible');
+            });
+
+            const formId = `${mediaType}${mode.charAt(0).toUpperCase() + mode.slice(1)}Form`;
+            const targetForm = document.getElementById(formId);
+            
+            if (targetForm) {
+                setTimeout(() => {
+                    targetForm.classList.add('visible');
+                }, 50);
+            }
+
+            // Only clear status and result if changing media type
+            const currentMediaType = document.querySelector('.media-button.active').dataset.media;
+            if (currentMediaType !== mediaType) {
+                document.getElementById('status').classList.add('hidden');
+                document.getElementById('result').classList.add('hidden');
+            }
+        }
+
+        // Media type switching with enhanced button states
+        document.querySelectorAll('.media-button').forEach(button => {
+            button.addEventListener('click', () => {
+                if (button.disabled) return;
+                
+                const previousMediaType = document.querySelector('.media-button.active').dataset.media;
+                const newMediaType = button.dataset.media;
+                
+                // Update active media button with transition
+                document.querySelectorAll('.media-button').forEach(b => {
+                    b.classList.remove('active');
+                    b.style.transform = 'translateY(0)';
+                });
+                button.classList.add('active');
+                button.style.transform = 'translateY(-2px)';
+
+                // Reset tab to hide
+                document.querySelectorAll('.tab-button').forEach(b => {
+                    b.classList.remove('active');
+                    if (b.dataset.mode === 'hide') b.classList.add('active');
+                });
+
+                // Show appropriate form with transition
+                updateFormVisibility(button.dataset.media, 'hide');
+                
+                // Clear results only when changing media type
+                if (previousMediaType !== newMediaType) {
+                    document.getElementById('status').classList.add('hidden');
+                    document.getElementById('result').classList.add('hidden');
+                }
+            });
+        });
+
+        // Tab switching with enhanced button states
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(b => {
+                    b.classList.remove('active');
+                    b.style.transform = 'translateY(0)';
+                });
+                button.classList.add('active');
+                button.style.transform = 'translateY(-2px)';
+                
+                const activeMedia = document.querySelector('.media-button.active').dataset.media;
+                updateFormVisibility(activeMedia, button.dataset.mode);
+            });
+        });
+
+        // Enhanced status display
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.classList.remove('hidden', 'success', 'error');
+            status.classList.add(isError ? 'error' : 'success');
+            
+            // Animate status appearance
+            status.style.opacity = '0';
+            status.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                status.style.opacity = '1';
+                status.style.transform = 'translateY(0)';
+            }, 50);
+        }
+
+        async function handleImageHide() {
+            const coverImage = document.getElementById('coverImage').files[0];
+            const textData = document.getElementById('imageTextData').value;
+            const seed = document.getElementById('imageSeed').value;
+
+            if (!coverImage || !textData || !seed) {
+                showStatus('Please provide all required data', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('coverImage', coverImage);
+            formData.append('textData', textData);
+            formData.append('seed', seed);
+
+            try {
+                const response = await fetch('/hide/image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Data hidden successfully!');
+                    window.location.href = result.encoded_image_path;
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Save these values for revealing the data later:</h3>
+                        <p>Key: ${result.key}</p>
+                        <p>TNP: ${result.tnp}</p>
+                    `;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showStatus(result.error || 'An error occurred', true);
+                }
+            } catch (error) {
+                showStatus('An error occurred while processing the request', true);
+            }
+        }
+
+        async function handleImageReveal() {
+            const encodedImage = document.getElementById('encodedImage').files[0];
+            const key = document.getElementById('imageKey').value;
+            const seed = document.getElementById('imageRevealSeed').value;
+            const tnp = document.getElementById('imageTnp').value;
+
+            if (!encodedImage || !key || !seed || !tnp) {
+                showStatus('Please provide all required data', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('encodedImage', encodedImage);
+            formData.append('key', key);
+            formData.append('seed', seed);
+            formData.append('tnp', tnp);
+
+            try {
+                const response = await fetch('/reveal/image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Data revealed successfully!');
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Hidden Text:</h3>
+                        <textarea readonly>${result.text}</textarea>
+                    `;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showStatus(result.error || 'An error occurred', true);
+                }
+            } catch (error) {
+                showStatus('An error occurred while processing the request', true);
+            }
+        }
+
+        async function handleVideoHide() {
+            const coverVideo = document.getElementById('coverVideo').files[0];
+            const textData = document.getElementById('videoTextData').value;
+            const seed = document.getElementById('videoSeed').value;
+
+            if (!coverVideo || !textData || !seed) {
+                showStatus('Please provide all required data', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('coverVideo', coverVideo);
+            formData.append('textData', textData);
+            formData.append('seed', seed);
+
+            try {
+                const response = await fetch('/hide/video', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Data hidden successfully!');
+                    window.location.href = result.encoded_video_path;
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Save these values for revealing the data later:</h3>
+                        <p>Key: ${result.key}</p>
+                        <p>TNP: ${result.tnp}</p>
+                    `;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showStatus(result.error || 'An error occurred', true);
+                }
+            } catch (error) {
+                showStatus('An error occurred while processing the request', true);
+            }
+        }
+        async function handleVideoReveal() {
+            const encodedVideo = document.getElementById('encodedVideo').files[0];
+            const key = document.getElementById('videoKey').value;
+            const seed = document.getElementById('videoRevealSeed').value;
+            const tnp = document.getElementById('videoTnp').value;
+
+            if (!encodedVideo || !key || !seed || !tnp) {
+                showStatus('Please provide all required data', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('encodedVideo', encodedVideo);
+            formData.append('key', key);
+            formData.append('seed', seed);
+            formData.append('tnp', tnp);
+
+            try {
+                const response = await fetch('/reveal/video', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Data revealed successfully!');
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Hidden Text:</h3>
+                        <textarea readonly>${result.text}</textarea>
+                    `;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showStatus(result.error || 'An error occurred', true);
+                }
+            } catch (error) {
+                showStatus('An error occurred while processing the request', true);
+            }
+        }
+        
+        async function handleAudioHide() {
+            const coverAudio = document.getElementById('coverAudio').files[0];
+            const textData = document.getElementById('audioTextData').value;
+
+            if (!coverAudio || !textData) {
+                showStatus('Please provide all required data', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('coverAudio', coverAudio);
+            formData.append('textData', textData);
+
+            try {
+                const response = await fetch('/hide/audio', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Data hidden successfully!');
+                    window.location.href = result.encoded_audio_path;
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Save this value for revealing the data later:</h3>
+                        <p>Key: ${result.key}</p>
+                    `;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showStatus(result.error || 'An error occurred', true);
+                }
+            } catch (error) {
+                showStatus('An error occurred while processing the request', true);
+            }
+        }
+
+        async function handleAudioReveal() {
+            const encodedAudio = document.getElementById('encodedAudio').files[0];
+            const key = document.getElementById('audioKey').value;
+
+            if (!encodedAudio || !key) {
+                showStatus('Please provide all required data', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('encodedAudio', encodedAudio);
+            formData.append('key', key);
+
+            try {
+                const response = await fetch('/reveal/audio', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Data revealed successfully!');
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Hidden Text:</h3>
+                        <textarea readonly>${result.text}</textarea>
+                    `;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showStatus(result.error || 'An error occurred', true);
+                }
+            } catch (error) {
+                showStatus('An error occurred while processing the request', true);
+            }
+        }
+
+        async function handleTextHide() {
+            const coverText = document.getElementById('coverText').files[0];
+            const textData = document.getElementById('textFileData').value;
+
+            if (!coverText || !textData) {
+                showStatus('Please provide all required data', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('coverText', coverText);
+            formData.append('textData', textData);
+
+            try {
+                const response = await fetch('/hide/text', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Data hidden successfully!');
+                    window.location.href = result.encoded_text_path;
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Save this value for revealing the data later:</h3>
+                        <p>Key: ${result.key}</p>
+                    `;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showStatus(result.error || 'An error occurred', true);
+                }
+            } catch (error) {
+                showStatus('An error occurred while processing the request', true);
+            }
+        }
+
+        async function handleTextReveal() {
+            const encodedText = document.getElementById('encodedText').files[0];
+            const key = document.getElementById('textKey').value;
+
+            if (!encodedText || !key) {
+                showStatus('Please provide all required data', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('encodedText', encodedText);
+            formData.append('key', key);
+
+            try {
+                const response = await fetch('/reveal/text', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Data revealed successfully!');
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = `
+                        <h3>Hidden Text:</h3>
+                        <textarea readonly>${result.text}</textarea>
+                    `;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showStatus(result.error || 'An error occurred', true);
+                }
+            } catch (error) {
+                showStatus('An error occurred while processing the request', true);
+            }
+        }
+    </script>
+</body>
+</html>
